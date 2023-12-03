@@ -1,26 +1,28 @@
-// main.js
 let robux = "";
 let fullRobux = "";
 
 chrome.storage.sync.get(["robux", "fullrobux"], function (items) {
-    robux = items.robux;
-    fullRobux = items.fullrobux;
+    robux = items.robux || "";
+    fullRobux = items.fullrobux || "";
 
-    const robuxObserver = new MutationObserver(function (mutations) {
-        mutations.forEach(function (mutation) {
-            if (mutation.type === 'childList' || mutation.type === 'characterData') {
-                const robuxAmount = document.getElementById('nav-robux-amount');
-                if (robuxAmount && robuxAmount.textContent !== robux) {
-                    robuxAmount.textContent = robux;
-                }
+    function updateRobuxDisplay() {
+        const robuxAmountElement = document.getElementById('nav-robux-amount');
+        if (robuxAmountElement && robuxAmountElement.textContent !== robux) {
+            robuxAmountElement.textContent = robux;
+        }
 
-                const robuxBalance = document.getElementById('nav-robux-balance');
-                if (robuxBalance && robuxBalance.textContent !== `<span>${fullRobux} Robux</span>`) {
-                    robuxBalance.innerHTML = `<span>${fullRobux} Robux</span>`;
-                }
+        const robuxBalanceElement = document.getElementById('nav-robux-balance');
+        if (robuxBalanceElement) {
+            const spanElement = robuxBalanceElement.querySelector('span');
+            const balanceText = spanElement ? spanElement.textContent : "";
+            if (balanceText !== fullRobux) {
+                robuxBalanceElement.innerHTML = `<span>${fullRobux} Robux</span>`;
             }
-        });
-    });
+        }
+    }
+
+    const robuxObserver = new MutationObserver(updateRobuxDisplay);
 
     robuxObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+    updateRobuxDisplay(); // Initial update
 });
