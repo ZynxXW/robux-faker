@@ -1,54 +1,26 @@
+// main.js
 let robux = "";
 let fullRobux = "";
 
-// Function to update an element's innerHTML from Chrome storage
-function updateElementFromStorage(storageKey, elementId, callback) {
-    chrome.storage.sync.get(storageKey, function(items) {
-        if (typeof items[storageKey] !== "undefined") {
-            let element = document.getElementById(elementId);
-            if (element) {
-                element.innerHTML = items[storageKey];
-                if (callback) {
-                    callback();
+chrome.storage.sync.get(["robux", "fullrobux"], function (items) {
+    robux = items.robux;
+    fullRobux = items.fullrobux;
+
+    const robuxObserver = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+            if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                const robuxAmount = document.getElementById('nav-robux-amount');
+                if (robuxAmount && robuxAmount.textContent !== robux) {
+                    robuxAmount.textContent = robux;
+                }
+
+                const robuxBalance = document.getElementById('nav-robux-balance');
+                if (robuxBalance && robuxBalance.textContent !== `<span>${fullRobux} Robux</span>`) {
+                    robuxBalance.innerHTML = `<span>${fullRobux} Robux</span>`;
                 }
             }
-        }
+        });
     });
-}
 
-// Check and update Robux balance
-function onRobuxMade() {
-    if (document.getElementById('nav-robux-amount')) {
-        updateElementFromStorage("robux", "nav-robux-amount", onRobuxChange);
-    } else {
-        setTimeout(onRobuxMade, 5);
-    }
-}
-
-// Monitor changes in Robux balance
-function onRobuxChange() {
-    let robuxElement = document.getElementById('nav-robux-amount');
-    if (robuxElement && robuxElement.innerHTML !== robux) {
-        robuxElement.innerHTML = robux;
-        setTimeout(onRobuxChange, 1);
-    } else {
-        setTimeout(onRobuxChange, 1);
-    }
-}
-
-// Check and update full Robux display
-function onFullShow() {
-    let fullRobuxElement = document.getElementById('nav-robux-balance');
-    if (fullRobuxElement && fullRobuxElement.innerHTML !== `<span>${fullRobux} Robux</span>`) {
-        fullRobuxElement.innerHTML = `<span>${fullRobux} Robux</span>`;
-        fullRobuxElement.title = fullRobux;
-        fullRobuxElement.count = fullRobux;
-        setTimeout(onFullShow, 1);
-    } else {
-        setTimeout(onFullShow, 1);
-    }
-}
-
-// Initial calls to start the functionality
-onRobuxMade();
-onFullShow();
+    robuxObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+});
