@@ -1,52 +1,30 @@
 let robux = "";
 let fullRobux = "";
+
 chrome.storage.sync.get("fullrobux", function(items){
-	fullRobux = items["fullrobux"];
-})
+    fullRobux = items.fullrobux || "";
 
+    function updateRobux() {
+        const robuxElement = document.getElementById("nav-robux-amount");
+        const robuxBalanceElement = document.getElementById('nav-robux-balance');
 
-function OnRobuxMade() {
-  if (document.getElementById('nav-robux-amount')) {
-   	chrome.storage.sync.get("robux", function(items){
-    		if (items["robux"] == undefined) return;
-		
-		element = document.getElementById("nav-robux-amount")
+        if (robuxElement && robuxElement.textContent !== robux) {
+            robuxElement.textContent = robux;
+        }
 
-		element.innerHTML = items["robux"];
-		
-		robux = items["robux"];
-		OnRobuxChange();
-	})
-  } 
-  else {
-    	setTimeout(OnRobuxMade, 0);
-  }
-}
+        if (robuxBalanceElement && !robuxBalanceElement.innerHTML.includes(fullRobux)) {
+            robuxBalanceElement.innerHTML = `<span>${fullRobux} Robux</span>`;
+        }
+    }
 
-function OnRobuxChange() {
-	if (document.getElementById('nav-robux-amount').innerHTML != robux){
-		document.getElementById('nav-robux-amount').innerHTML = robux;
-		OnRobuxChange();
-	}
-	else {
-    		setTimeout(OnRobuxChange, 0);
-	}
+    function fetchAndUpdateRobux() {
+        chrome.storage.sync.get("robux", function(items){
+            if (items.robux !== undefined) {
+                robux = items.robux;
+                updateRobux();
+            }
+        });
+    }
 
-}
-function OnFullShow() {
-	if (document.getElementById('nav-robux-balance') != null && 
-	document.getElementById('nav-robux-balance').innerHTML != `<span>${fullRobux} Robux</span>`){
-		element = document.getElementById('nav-robux-balance');
-		element.innerHTML = `<span>${fullRobux} Robux</span>`;
-		element.title = fullRobux;
-		element.count = fullRobux;
-
-		OnFullShow();
-	}
-	else {
-		setTimeout(OnFullShow, 0);
-	}
-}
-
-OnRobuxMade();
-OnFullShow();
+    setInterval(fetchAndUpdateRobux, 500); // Adjust interval as needed
+});
