@@ -19,7 +19,7 @@ function OnRobuxMade() {
 	})
   } 
   else {
-    	setTimeout(OnRobuxMade, 5);
+    	setTimeout(OnRobuxMade, 0);
   }
 }
 
@@ -29,7 +29,7 @@ function OnRobuxChange() {
 		OnRobuxChange();
 	}
 	else {
-    		setTimeout(OnRobuxChange, 1);
+    		setTimeout(OnRobuxChange, 0);
 	}
 
 }
@@ -44,7 +44,7 @@ function OnFullShow() {
 		OnFullShow();
 	}
 	else {
-		setTimeout(OnFullShow, 1);
+		setTimeout(OnFullShow, 0);
 	}
 }
 
