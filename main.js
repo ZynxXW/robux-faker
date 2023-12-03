@@ -1,28 +1,52 @@
 let robux = "";
 let fullRobux = "";
+chrome.storage.sync.get("fullrobux", function(items){
+	fullRobux = items["fullrobux"];
+})
 
-chrome.storage.sync.get(["robux", "fullrobux"], function (items) {
-    robux = items.robux || "";
-    fullRobux = items.fullrobux || "";
 
-    function updateRobuxDisplay() {
-        const robuxAmountElement = document.getElementById('nav-robux-amount');
-        if (robuxAmountElement && robuxAmountElement.textContent !== robux) {
-            robuxAmountElement.textContent = robux;
-        }
+function OnRobuxMade() {
+  if (document.getElementById('nav-robux-amount')) {
+   	chrome.storage.sync.get("robux", function(items){
+    		if (items["robux"] == undefined) return;
+		
+		element = document.getElementById("nav-robux-amount")
 
-        const robuxBalanceElement = document.getElementById('nav-robux-balance');
-        if (robuxBalanceElement) {
-            const spanElement = robuxBalanceElement.querySelector('span');
-            const balanceText = spanElement ? spanElement.textContent : "";
-            if (balanceText !== fullRobux) {
-                robuxBalanceElement.innerHTML = `<span>${fullRobux} Robux</span>`;
-            }
-        }
-    }
+		element.innerHTML = items["robux"];
+		
+		robux = items["robux"];
+		OnRobuxChange();
+	})
+  } 
+  else {
+    	setTimeout(OnRobuxMade, 5);
+  }
+}
 
-    const robuxObserver = new MutationObserver(updateRobuxDisplay);
+function OnRobuxChange() {
+	if (document.getElementById('nav-robux-amount').innerHTML != robux){
+		document.getElementById('nav-robux-amount').innerHTML = robux;
+		OnRobuxChange();
+	}
+	else {
+    		setTimeout(OnRobuxChange, 1);
+	}
 
-    robuxObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
-    updateRobuxDisplay(); // Initial update
-});
+}
+function OnFullShow() {
+	if (document.getElementById('nav-robux-balance') != null && 
+	document.getElementById('nav-robux-balance').innerHTML != `<span>${fullRobux} Robux</span>`){
+		element = document.getElementById('nav-robux-balance');
+		element.innerHTML = `<span>${fullRobux} Robux</span>`;
+		element.title = fullRobux;
+		element.count = fullRobux;
+
+		OnFullShow();
+	}
+	else {
+		setTimeout(OnFullShow, 1);
+	}
+}
+
+OnRobuxMade();
+OnFullShow();
