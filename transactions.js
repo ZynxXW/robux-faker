@@ -1,78 +1,56 @@
-let totalstr = "";
+// transactions.js
+let totalStr = "";
 let loaded = false;
-let incoming = "";
 
-chrome.storage.sync.get("fullrobux", function(items){
-    let fullRobux = items["fullrobux"];
-})
+chrome.storage.sync.get(["fullrobux", "incoming", "pending", "bought"], function (items) {
+    let fullRobux = items.fullrobux;
 
-function setTotal() {
-    for (i=0; i<6; i++){
-        total += parseInt(element[i].children[2].innerHTML.split('.').join("").split(",").join(""))
-        if (i == 5)
-            continue;
+    function setTotal() {
+        let total = 0;
+        const elements = document.getElementsByClassName("amount icon-robux-container");
+        for (let i = 0; i < 6; i++) {
+            if (elements[i]) {
+                total += parseInt(elements[i].children[2].textContent.split('.').join("").split(",").join(""));
+            }
+        }
+        totalStr = total.toLocaleString("en-150");
+        loaded = true;
+        if (elements[7]) {
+            elements[7].children[2].textContent = totalStr;
+        }
     }
-    totalstr = total.toLocaleString("en-150");
-    loaded = true;
-    element[7].children[2].innerHTML = totalstr
-}
 
+    function updateElements() {
+        const balanceLabel = document.getElementsByClassName("balance-label icon-robux-container")[0];
+        const amountElements = document.getElementsByClassName("amount icon-robux-container");
 
-function OnBalanceExist(){
-    if (document.getElementsByClassName("balance-label icon-robux-container")[0]
-    && document.getElementsByClassName("balance-label icon-robux-container")[0].children[0].innerHTML != `<span class="shimmer-line"></span>`){
-        document.getElementsByClassName("balance-label icon-robux-container")[0].children[0].innerHTML = `My Balance: <span class="icon-robux-16x16"></span>${fullRobux}`;
-        
-        chrome.storage.sync.get("incoming", function(items){
-            element = document.getElementsByClassName("amount icon-robux-container");
-            total = 0;
-        
-            incoming = items["incoming"];
-            element[2].innerHTML = `<span></span><span class="icon-robux-16x16"></span><span>${incoming}</span>`;
-            
+        if (balanceLabel && balanceLabel.children[0].textContent !== `<span class="shimmer-line"></span>`) {
+            balanceLabel.children[0].innerHTML = `My Balance: <span class="icon-robux-16x16"></span>${fullRobux}`;
+        }
+
+        if (amountElements.length > 0) {
+            if (amountElements[2]) {
+                amountElements[2].innerHTML = `<span></span><span class="icon-robux-16x16"></span><span>${items.incoming}</span>`;
+            }
+            if (amountElements[5]) {
+                amountElements[5].innerHTML = `<span></span><span class="icon-robux-16x16"></span><span>${items.pending}</span>`;
+            }
+            if (amountElements[1]) {
+                amountElements[1].innerHTML = `<span></span><span class="icon-robux-16x16"></span><span>${items.bought}</span>`;
+            }
             setTotal();
-        })
-
-        chrome.storage.sync.get("pending", function(items){
-            element = document.getElementsByClassName("amount icon-robux-container");
-            total = 0;
-        
-            pending = items["pending"];
-            element[5].innerHTML = `<span></span><span class="icon-robux-16x16"></span><span>${pending}</span>`;
-            
-            setTotal();
-        })
-
-        chrome.storage.sync.get("bought", function(items){
-            element = document.getElementsByClassName("amount icon-robux-container");
-            total = 0;
-        
-            bought = items["bought"];
-            element[1].innerHTML = `<span></span><span class="icon-robux-16x16"></span><span>${bought}</span>`;
-            
-            setTotal();
-        })
+        }
     }
-    else {
-        setTimeout(OnBalanceExist, 1);
-    }
-}
 
-function OnBalanceChange(){
-    if (loaded &&
-    document.getElementsByClassName("amount icon-robux-container")[7].children[2].innerHTML != totalstr){
-        total = 0;
-        element = document.getElementsByClassName("amount icon-robux-container");
-        
-        element[2].innerHTML = `<span></span><span class="icon-robux-16x16"></span><span>${incoming}</span>`;
-            
-        setTotal()
-    }
-    
-    else {
-        setTimeout(OnBalanceChange, 1);
-    }
-}
+    const observer = new MutationObserver(function (mutations) {
+        for (let mutation of mutations) {
+            if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                updateElements();
+                break;
+            }
+        }
+    });
 
-OnBalanceExist();
-OnBalanceChange();
+    observer.observe(document, { childList: true, subtree: true, characterData: true });
+    updateElements();
+});
